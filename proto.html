@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPI Spending Clarity — Concept</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ECEAE4;
+  --phone-bg: #F8F7F4;
+  --surface: #FFFFFF;
+  --text-primary: #181816;
+  --text-secondary: #64645E;
+  --text-hint: #A4A49E;
+  --border: #E4E0D8;
+  --border-light: #EEEAE4;
+
+  --food-bg: #EAF3E8; --food-text: #2A6228; --food-border: #B8D8B4;
+  --transport-bg: #E8EEF8; --transport-text: #2A3E7A; --transport-border: #B4C4E8;
+  --household-bg: #F8F0E4; --household-text: #7A4E1A; --household-border: #E8CFA0;
+  --personal-bg: #F2E8F6; --personal-text: #6A2882; --personal-border: #D4B0E4;
+  --medical-bg: #FDE8E8; --medical-text: #8A2020; --medical-border: #F0BABA;
+
+  --untagged-bg: #FFFAE8; --untagged-text: #806A18; --untagged-border: #E8D070;
+
+  --crowd-bg: #F0F8F0; --crowd-text: #2A6228; --crowd-border: #B8D8B4;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 80px;
+}
+
+/* Page header */
+.page-intro {
+  text-align: center;
+  margin-bottom: 40px;
+  max-width: 420px;
+}
+
+.page-intro .eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-hint);
+  margin-bottom: 10px;
+}
+
+.page-intro h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.page-intro p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* Flow steps */
+.flow-steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.step.active {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.step.done {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.step.inactive {
+  background: transparent;
+  border-color: var(--border);
+  opacity: 0.5;
+}
+
+.step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step.active .step-num { background: rgba(255,255,255,0.2); color: #fff; }
+.step.done .step-num { background: var(--food-bg); color: var(--food-text); }
+.step.inactive .step-num { background: var(--border); color: var(--text-hint); }
+
+.step-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.step.active .step-label { color: #fff; }
+.step.done .step-label { color: var(--text-secondary); }
+.step.inactive .step-label { color: var(--text-hint); }
+
+.step-arrow { color: var(--text-hint); font-size: 12px; }
+
+/* Phone */
+.phone {
+  width: 375px;
+  background: var(--phone-bg);
+  border-radius: 52px;
+  border: 1.5px solid #D4D0C8;
+  box-shadow:
+    0 0 0 6px rgba(0,0,0,0.04),
+    0 32px 80px rgba(0,0,0,0.12),
+    0 8px 24px rgba(0,0,0,0.06);
+  overflow: hidden;
+  position: relative;
+  min-height: 780px;
+}
+
+/* Dynamic island */
+.dynamic-island {
+  width: 110px;
+  height: 30px;
+  background: #18181A;
+  border-radius: 20px;
+  margin: 14px auto 0;
+  position: relative;
+  z-index: 5;
+}
+
+.phone-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 780px;
+}
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 28px 0;
+}
+
+.status-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-icons svg {
+  width: 14px; height: 14px;
+  fill: var(--text-primary);
+}
+
+/* ===================== SCREEN 1 ===================== */
+#screen-1 { display: flex; flex-direction: column; flex: 1; }
+#screen-2 { display: none; flex-direction: column; flex: 1; }
+#screen-3 { display: none; flex-direction: column; flex: 1; }
+#screen-4 { display: none; flex-direction: column; flex: 1; }
+
+/* App header */
+.app-header {
+  padding: 14px 22px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.app-title { font-size: 24px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+.app-subtitle { font-size: 12px; color: var(--text-hint); margin-top: 4px; font-weight: 400; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.month-chip {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--border-light);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+/* Summary card */
+.summary-card {
+  margin: 0 18px 14px;
+  background: var(--text-primary);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-col { text-align: center; }
+.summary-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 17px;
+  font-weight: 500;
+  color: #F8F7F4;
+}
+.summary-lbl {
+  font-size: 9px;
+  color: rgba(248,247,244,0.45);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.summary-divider {
+  width: 1px;
+  background: rgba(248,247,244,0.12);
+  align-self: stretch;
+}
+
+/* Untagged banner */
+.untagged-banner {
+  margin: 0 18px 14px;
+  background: var(--untagged-bg);
+  border: 1px solid var(--untagged-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+.untagged-banner:active { transform: scale(0.98); opacity: 0.85; }
+
+.untagged-left { display: flex; align-items: center; gap: 10px; }
+
+.untagged-pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--untagged-text);
+  animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.untagged-text-wrap p { font-size: 12px; font-weight: 500; color: var(--untagged-text); }
+.untagged-text-wrap span { font-size: 11px; color: var(--untagged-text); opacity: 0.65; }
+.untagged-cta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--untagged-text);
+  background: rgba(128,106,24,0.12);
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Section label */
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-hint);
+  padding: 0 22px;
+  margin-bottom: 6px;
+}
+
+/* Transactions */
+.txn-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 18px;
+  scrollbar-width: none;
+}
+.txn-list::-webkit-scrollbar { display: none; }
+
+.txn-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 6px;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  border-radius: 10px;
+  margin: 0 -6px;
+  transition: background 0.12s;
+}
+.txn-item:hover { background: rgba(0,0,0,0.025); }
+.txn-item:last-child { border-bottom: none; }
+.txn-item.highlight { background: var(--crowd-bg); border-color: var(--crowd-border); animation: highlightIn 0.4s ease; }
+
+@keyframes highlightIn {
+  from { background: rgba(42,98,40,0.18); }
+  to { background: var(--crowd-bg); }
+}
+
+.txn-left { display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0; }
+
+.txn-av {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600;
+  flex-shrink: 0;
+}
+
+.txn-info { min-width: 0; }
+.txn-name { font-size: 13px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txn-meta { font-size: 10px; color: var(--text-hint); font-family: 'DM Mono', monospace; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.txn-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; margin-left: 8px; }
+.txn-amt { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--text-primary); }
+
+.tag-pill {
+  font-size: 9px; font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.t-food { background: var(--food-bg); color: var(--food-text); border-color: var(--food-border); }
+.t-transport { background: var(--transport-bg); color: var(--transport-text); border-color: var(--transport-border); }
+.t-household { background: var(--household-bg); color: var(--household-text); border-color: var(--household-border); }
+.t-personal { background: var(--personal-bg); color: var(--personal-text); border-color: var(--personal-border); }
+.t-medical { background: var(--medical-bg); color: var(--medical-text); border-color: var(--medical-border); }
+.t-unknown {
+  background: var(--untagged-bg); color: var(--untagged-text); border-color: var(--untagged-border);
+  border-style: dashed;
+}
+
+/* Bottom nav */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0 20px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+.nav-ico { width: 22px; height: 22px; }
+.nav-ico svg { width: 100%; height: 100%; }
+.nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-primary); opacity: 0; }
+.nav-btn.active .nav-dot { opacity: 1; }
+.nav-btn.active .nav-ico svg { stroke: var(--text-primary) !important; }
+.nav-btn:not(.active) .nav-ico svg { stroke: var(--text-hint) !important; }
+
+/* ===================== SCREEN 2 — Tag drawer ===================== */
+.screen-2-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 22px 22px 28px;
+}
+
+.back-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+.back-row svg { width: 18px; height: 18px; stroke: var(--text-secondary); }
+.back-row span { font-size: 13px; color: var(--text-secondary); }
+
+.txn-detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.detail-av {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 600;
+  background: var(--untagged-bg);
+  color: var(--untagged-text);
+  flex-shrink: 0;
+}
+
+.detail-info { flex: 1; min-width: 0; }
+.detail-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.detail-vpa { font-size: 11px; color: var(--text-hint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+.detail-amt { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 600; color: var(--text-primary); flex-shrink: 0; }
+
+.tag-question {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.tag-subtext {
+  font-size: 11px;
+  color: var(--text-hint);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.tag-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tag-option {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tag-option:hover { border-color: var(--text-hint); transform: translateY(-1px); }
+.tag-option.selected { border-color: var(--text-primary); background: var(--food-bg); border-color: var(--food-border); }
+
+.tag-option-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tag-option-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+
+/* Crowd signal */
+.crowd-signal {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crowd-avatars {
+  display: flex;
+}
+
+.crowd-av {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface);
+  margin-right: -4px;
+  font-size: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+}
+
+.crowd-count {
+  font-size: 10px;
+  color: var(--text-hint);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.crowd-bar-wrap {
+  height: 3px;
+  background: var(--border-light);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.crowd-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.confirm-note {
+  background: var(--crowd-bg);
+  border: 1px solid var(--crowd-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 11px;
+  color: var(--food-text);
+  line-height: 1.5;
+}
+
+.confirm-note-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+.confirm-btn {
+  width: 100%;
+  background: var(--text-primary);
+  color: #F8F7F4;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  margin-bottom: 10px;
+}
+.confirm-btn:hover { opacity: 0.88; }
+.confirm-btn:active { transform: scale(0.98); }
+
+.skip-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--text-hint);
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* ===================== SCREEN 3 — Confirmation ===================== */
+.screen-3-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 28px 22px;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--food-bg);
+  border: 2px solid var(--food-border);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.confirm-icon-wrap svg { width: 28px; height: 28px; stroke: var(--food-text); stroke-width: 2.5; }
+
+.confirm-title { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; text-align: center; }
+.confirm-sub { font-size: 13px; color: var(--text-secondary); text-align: center; line-height: 1.6; margin-bottom: 28px; font-weight: 300; }
+
+.auto-tag-card {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.auto-tag-header {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-hint);
+  margin-bottom: 12px;
+}
+
+.auto-tag-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+  animation: fadeSlideIn 0.3s ease both;
+}
+.auto-tag-item:last-child { border-bottom: none; }
+.auto-tag-item:nth-child(2) { animation-delay: 0.05s; }
+.auto-tag-item:nth-child(3) { animation-delay: 0.1s; }
+.auto-tag-item:nth-child(4) { animation-delay: 0.15s; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.auto-tag-name { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+.auto-tag-meta { font-size: 10px; color: var(--text-hint); font-family: 'DM Mono', monospace; }
+.auto-tag-check {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--food-bg);
+  border: 1px solid var(--food-border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.auto-tag-check svg { width: 10px; height: 10px; stroke: var(--food-text); stroke-width: 2.5; }
+
+.crowd-contribution {
+  width: 100%;
+  background: var(--crowd-bg);
+  border: 1px solid var(--crowd-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  font-size: 12px;
+  color: var(--food-text);
+  line-height: 1.5;
+}
+
+.crowd-contrib-icon { font-size: 18px; flex-shrink: 0; }
+
+.done-btn {
+  width: 100%;
+  background: var(--text-primary);
+  color: #F8F7F4;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.done-btn:hover { opacity: 0.88; }
+
+/* ===================== SCREEN 4 — Updated list ===================== */
+#screen-4 .txn-item.newly-tagged {
+  background: var(--crowd-bg);
+}
+
+.all-clear-banner {
+  margin: 0 18px 14px;
+  background: var(--food-bg);
+  border: 1px solid var(--food-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.all-clear-icon { font-size: 14px; }
+.all-clear-text p { font-size: 12px; font-weight: 500; color: var(--food-text); }
+.all-clear-text span { font-size: 11px; color: var(--food-text); opacity: 0.7; }
+
+/* Responsive */
+@media (max-width: 440px) {
+  .phone { width: 100%; border-radius: 0; border-left: none; border-right: none; }
+  .flow-steps { flex-wrap: wrap; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-intro">
+  <p class="eyebrow">Product concept</p>
+  <h1>UPI Spending Clarity</h1>
+  <p>Tag a contact once. Every future payment is automatically categorized — forever. Crowdsourced signals make it smarter for everyone.</p>
+</div>
+
+<div class="flow-steps">
+  <div class="step active" id="step-1"><div class="step-num">1</div><span class="step-label">Transactions</span></div>
+  <span class="step-arrow">›</span>
+  <div class="step inactive" id="step-2"><div class="step-num">2</div><span class="step-label">Tag contact</span></div>
+  <span class="step-arrow">›</span>
+  <div class="step inactive" id="step-3"><div class="step-num">3</div><span class="step-label">Auto-applied</span></div>
+  <span class="step-arrow">›</span>
+  <div class="step inactive" id="step-4"><div class="step-num">4</div><span class="step-label">All tagged</span></div>
+</div>
+
+<div class="phone">
+  <div class="dynamic-island"></div>
+  <div class="phone-inner">
+
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 24 24"><path d="M1.5 8.5C5.5 4.5 10 2.5 12 2.5s6.5 2 10.5 6" stroke="#18181A" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M5 12c1.9-2 4.3-3.2 7-3.2s5.1 1.2 7 3.2" stroke="#18181A" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M8.5 15.5C9.8 14.1 10.8 13.5 12 13.5s2.2.6 3.5 2" stroke="#18181A" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="12" cy="19" r="1.2" fill="#18181A"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="11" rx="2" stroke="#18181A" stroke-width="1.8" fill="none"/><path d="M20 10.5h2v4h-2" stroke="#18181A" stroke-width="1.8" stroke-linecap="round" fill="none"/><rect x="4" y="9" width="11" height="7" rx="1" fill="#18181A"/></svg>
+      </div>
+    </div>
+
+    <!-- SCREEN 1 -->
+    <div id="screen-1">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Spends</div>
+          <div class="app-subtitle">This week · Jul 14–20</div>
+        </div>
+        <div class="header-right">
+          <div class="month-chip">July</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-col"><div class="summary-val">₹8,340</div><div class="summary-lbl">Total spent</div></div>
+        <div class="summary-divider"></div>
+        <div class="summary-col"><div class="summary-val">₹3,120</div><div class="summary-lbl">Tagged</div></div>
+        <div class="summary-divider"></div>
+        <div class="summary-col"><div class="summary-val">₹5,220</div><div class="summary-lbl">Untagged</div></div>
+      </div>
+
+      <div class="untagged-banner" onclick="goToScreen(2)">
+        <div class="untagged-left">
+          <div class="untagged-pulse"></div>
+          <div class="untagged-text-wrap">
+            <p>4 contacts need tagging</p>
+            <span>₹5,220 uncategorized</span>
+          </div>
+        </div>
+        <div class="untagged-cta">Tag now →</div>
+      </div>
+
+      <div class="section-label">Recent</div>
+      <div class="txn-list">
+        <div class="txn-item" onclick="goToScreen(2)">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#FFF0E8;color:#8A4A1A;">RK</div>
+            <div class="txn-info">
+              <div class="txn-name">Ramesh Kumar</div>
+              <div class="txn-meta">ramesh@okaxis · Today</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹2,400</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item" onclick="goToScreen(2)">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#F0E8FF;color:#5A1A8A;">PS</div>
+            <div class="txn-info">
+              <div class="txn-name">Priya S</div>
+              <div class="txn-meta">8876543210@ybl · Yesterday</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹1,200</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#E8F3E8;color:#2A621A;">SW</div>
+            <div class="txn-info">
+              <div class="txn-name">Swiggy</div>
+              <div class="txn-meta">swiggy@hdfcbank · Yesterday</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹480</div>
+            <div class="tag-pill t-food">Food</div>
+          </div>
+        </div>
+        <div class="txn-item" onclick="goToScreen(2)">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#FFF8E4;color:#806A18;">MV</div>
+            <div class="txn-info">
+              <div class="txn-name">Manoj Vegetable</div>
+              <div class="txn-meta">9765432100@ptyes · Mon</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹420</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#E8EEF8;color:#2A3E7A;">OL</div>
+            <div class="txn-info">
+              <div class="txn-name">Ola</div>
+              <div class="txn-meta">ola@okicici · Mon</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹340</div>
+            <div class="tag-pill t-transport">Transport</div>
+          </div>
+        </div>
+        <div class="txn-item" onclick="goToScreen(2)">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#FFF0E8;color:#8A4A1A;">SK</div>
+            <div class="txn-info">
+              <div class="txn-name">Sunita K</div>
+              <div class="txn-meta">sunita@paytm · Sun</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹1,200</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#E8F3E8;color:#2A621A;">BL</div>
+            <div class="txn-info">
+              <div class="txn-name">Blinkit</div>
+              <div class="txn-meta">blinkit@hdfcbank · Sun</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹300</div>
+            <div class="tag-pill t-food">Food</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-btn active">
+          <div class="nav-ico"><svg fill="none" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-btn">
+          <div class="nav-ico"><svg fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path d="M12 8v4l3 3" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-btn">
+          <div class="nav-ico"><svg fill="none" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke-width="1.8"/></svg></div>
+          <div class="nav-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2 — Tag contact -->
+    <div id="screen-2">
+      <div class="screen-2-inner">
+        <div class="back-row" onclick="goToScreen(1)">
+          <svg fill="none" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          <span>Back</span>
+        </div>
+
+        <div class="txn-detail-card">
+          <div class="detail-av">RK</div>
+          <div class="detail-info">
+            <div class="detail-name">Ramesh Kumar</div>
+            <div class="detail-vpa">ramesh@okaxis</div>
+          </div>
+          <div class="detail-amt">₹2,400</div>
+        </div>
+
+        <p class="tag-question">Who is Ramesh Kumar?</p>
+        <p class="tag-subtext">Tag once — all future payments to this contact will be categorized automatically.</p>
+
+        <div class="tag-grid">
+
+          <div class="tag-option" id="opt-household" onclick="selectTag('household')">
+            <div class="tag-option-top">
+              <span class="tag-option-name">Household</span>
+            </div>
+            <div class="crowd-signal">
+              <div class="crowd-avatars">
+                <div class="crowd-av" style="background:#F8F0E4;color:#7A4E1A;">A</div>
+                <div class="crowd-av" style="background:#F8F0E4;color:#7A4E1A;">B</div>
+                <div class="crowd-av" style="background:#F8F0E4;color:#7A4E1A;">C</div>
+              </div>
+              <span class="crowd-count">247 tagged this</span>
+            </div>
+            <div class="crowd-bar-wrap">
+              <div class="crowd-bar" style="width:68%;background:#C4956A;"></div>
+            </div>
+          </div>
+
+          <div class="tag-option" id="opt-personal" onclick="selectTag('personal')">
+            <div class="tag-option-top">
+              <span class="tag-option-name">Personal</span>
+            </div>
+            <div class="crowd-signal">
+              <div class="crowd-avatars">
+                <div class="crowd-av" style="background:#F2E8F6;color:#6A2882;">D</div>
+                <div class="crowd-av" style="background:#F2E8F6;color:#6A2882;">E</div>
+              </div>
+              <span class="crowd-count">64 tagged this</span>
+            </div>
+            <div class="crowd-bar-wrap">
+              <div class="crowd-bar" style="width:18%;background:#B070D0;"></div>
+            </div>
+          </div>
+
+          <div class="tag-option" id="opt-food" onclick="selectTag('food')">
+            <div class="tag-option-top">
+              <span class="tag-option-name">Food</span>
+            </div>
+            <div class="crowd-signal">
+              <div class="crowd-avatars">
+                <div class="crowd-av" style="background:#EAF3E8;color:#2A6228;">F</div>
+              </div>
+              <span class="crowd-count">28 tagged this</span>
+            </div>
+            <div class="crowd-bar-wrap">
+              <div class="crowd-bar" style="width:8%;background:#5A9A50;"></div>
+            </div>
+          </div>
+
+          <div class="tag-option" id="opt-other" onclick="selectTag('other')">
+            <div class="tag-option-top">
+              <span class="tag-option-name">Other</span>
+            </div>
+            <div class="crowd-signal">
+              <span class="crowd-count" style="margin-left:0;">24 tagged this</span>
+            </div>
+            <div class="crowd-bar-wrap">
+              <div class="crowd-bar" style="width:6%;background:#A0A098;"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="confirm-note" id="confirm-note" style="display:none;">
+          <span class="confirm-note-icon">💡</span>
+          <span>247 other users with similar payments tagged this as <strong>Household help</strong>. Looks like a good match.</span>
+        </div>
+
+        <button class="confirm-btn" id="confirm-btn" onclick="goToScreen(3)" style="display:none;">
+          Tag as Household — apply to all payments
+        </button>
+        <button class="skip-btn" onclick="goToScreen(1)">Skip for now</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3 — Confirmed -->
+    <div id="screen-3">
+      <div class="screen-3-inner">
+        <div class="confirm-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+
+        <p class="confirm-title">Tagged as Household</p>
+        <p class="confirm-sub">All past and future payments to<br><strong>ramesh@okaxis</strong> are now categorized.</p>
+
+        <div class="auto-tag-card">
+          <div class="auto-tag-header">Auto-applied to past payments</div>
+          <div class="auto-tag-item">
+            <div>
+              <div class="auto-tag-name">Ramesh Kumar</div>
+              <div class="auto-tag-meta">Jul 20 · ₹2,400</div>
+            </div>
+            <div class="auto-tag-check"><svg fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+          <div class="auto-tag-item">
+            <div>
+              <div class="auto-tag-name">Ramesh Kumar</div>
+              <div class="auto-tag-meta">Jun 20 · ₹2,400</div>
+            </div>
+            <div class="auto-tag-check"><svg fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+          <div class="auto-tag-item">
+            <div>
+              <div class="auto-tag-name">Ramesh Kumar</div>
+              <div class="auto-tag-meta">May 20 · ₹2,400</div>
+            </div>
+            <div class="auto-tag-check"><svg fill="none" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>
+
+        <div class="crowd-contribution">
+          <span class="crowd-contrib-icon">🤝</span>
+          <span>Your tag helps other users with payments to <strong>ramesh@okaxis</strong> get auto-categorized too.</span>
+        </div>
+
+        <button class="done-btn" onclick="goToScreen(4)">Back to transactions</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 4 — Updated list -->
+    <div id="screen-4">
+      <div class="app-header">
+        <div>
+          <div class="app-title">Spends</div>
+          <div class="app-subtitle">This week · Jul 14–20</div>
+        </div>
+        <div class="header-right">
+          <div class="month-chip">July</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-col"><div class="summary-val">₹8,340</div><div class="summary-lbl">Total spent</div></div>
+        <div class="summary-divider"></div>
+        <div class="summary-col"><div class="summary-val">₹5,520</div><div class="summary-lbl">Tagged</div></div>
+        <div class="summary-divider"></div>
+        <div class="summary-col"><div class="summary-val">₹2,820</div><div class="summary-lbl">Untagged</div></div>
+      </div>
+
+      <div class="all-clear-banner">
+        <span class="all-clear-icon">✓</span>
+        <div class="all-clear-text">
+          <p>Ramesh Kumar tagged as Household</p>
+          <span>3 past payments auto-categorized</span>
+        </div>
+      </div>
+
+      <div class="section-label">Recent</div>
+      <div class="txn-list">
+        <div class="txn-item newly-tagged">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#F8F0E4;color:#7A4E1A;">RK</div>
+            <div class="txn-info">
+              <div class="txn-name">Ramesh Kumar</div>
+              <div class="txn-meta">ramesh@okaxis · Today</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹2,400</div>
+            <div class="tag-pill t-household">Household</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#F0E8FF;color:#5A1A8A;">PS</div>
+            <div class="txn-info">
+              <div class="txn-name">Priya S</div>
+              <div class="txn-meta">8876543210@ybl · Yesterday</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹1,200</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#E8F3E8;color:#2A621A;">SW</div>
+            <div class="txn-info">
+              <div class="txn-name">Swiggy</div>
+              <div class="txn-meta">swiggy@hdfcbank · Yesterday</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹480</div>
+            <div class="tag-pill t-food">Food</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#FFF8E4;color:#806A18;">MV</div>
+            <div class="txn-info">
+              <div class="txn-name">Manoj Vegetable</div>
+              <div class="txn-meta">9765432100@ptyes · Mon</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹420</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#E8EEF8;color:#2A3E7A;">OL</div>
+            <div class="txn-info">
+              <div class="txn-name">Ola</div>
+              <div class="txn-meta">ola@okicici · Mon</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹340</div>
+            <div class="tag-pill t-transport">Transport</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#FFF0E8;color:#8A4A1A;">SK</div>
+            <div class="txn-info">
+              <div class="txn-name">Sunita K</div>
+              <div class="txn-meta">sunita@paytm · Sun</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹1,200</div>
+            <div class="tag-pill t-unknown">? Tag</div>
+          </div>
+        </div>
+        <div class="txn-item">
+          <div class="txn-left">
+            <div class="txn-av" style="background:#E8F3E8;color:#2A621A;">BL</div>
+            <div class="txn-info">
+              <div class="txn-name">Blinkit</div>
+              <div class="txn-meta">blinkit@hdfcbank · Sun</div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amt">₹300</div>
+            <div class="tag-pill t-food">Food</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-btn active">
+          <div class="nav-ico"><svg fill="none" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-btn">
+          <div class="nav-ico"><svg fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path d="M12 8v4l3 3" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <div class="nav-dot"></div>
+        </div>
+        <div class="nav-btn">
+          <div class="nav-ico"><svg fill="none" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke-width="1.8"/></svg></div>
+          <div class="nav-dot"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let selectedTag = null;
+
+function goToScreen(n) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('screen-'+i).style.display = 'none';
+  });
+  document.getElementById('screen-'+n).style.display = 'flex';
+
+  // Update flow steps
+  const states = { 1: ['active','inactive','inactive','inactive'], 2: ['done','active','inactive','inactive'], 3: ['done','done','active','inactive'], 4: ['done','done','done','active'] };
+  const s = states[n];
+  [1,2,3,4].forEach((i,idx) => {
+    const el = document.getElementById('step-'+i);
+    el.className = 'step ' + s[idx];
+    if (s[idx] === 'done') el.querySelector('.step-num').textContent = '✓';
+    else el.querySelector('.step-num').textContent = i;
+  });
+
+  if (n === 2) selectedTag = null;
+}
+
+function selectTag(tag) {
+  selectedTag = tag;
+  document.querySelectorAll('.tag-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('opt-'+tag).classList.add('selected');
+
+  const note = document.getElementById('confirm-note');
+  const btn = document.getElementById('confirm-btn');
+
+  if (tag === 'household') {
+    note.style.display = 'flex';
+    btn.style.display = 'block';
+    btn.textContent = 'Tag as Household — apply to all payments';
+  } else if (tag === 'personal') {
+    note.style.display = 'none';
+    btn.style.display = 'block';
+    btn.textContent = 'Tag as Personal — apply to all payments';
+  } else if (tag === 'food') {
+    note.style.display = 'none';
+    btn.style.display = 'block';
+    btn.textContent = 'Tag as Food — apply to all payments';
+  } else {
+    note.style.display = 'none';
+    btn.style.display = 'block';
+    btn.textContent = 'Tag as Other — apply to all payments';
+  }
+}
+</script>
+</body>
+</html>
